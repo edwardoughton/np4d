@@ -105,7 +105,7 @@ venv.bak/
 .mypy_cache/
 
 # Data
-data/national_data*
+data/national*
 vis/*
 scripts/script_config.ini
 cache
