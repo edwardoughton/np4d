@@ -110,3 +110,5 @@ vis/*
 scripts/script_config.ini
 cache
 *.zip
+*.gif
+data/fullNetwork*
