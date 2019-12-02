@@ -55,6 +55,7 @@ setup(
         'shapely',
         'numpy',
         'rtree',
+        'contextily',
     ],
     extras_require={
         # eg:
