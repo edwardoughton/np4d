@@ -1,5 +1,5 @@
 """
-Advanced Network Planning in Four Dimensions - anp4d
+Network Planning in Four Dimensions - np4d
 
 Written by Edward Oughton
 November 2019
