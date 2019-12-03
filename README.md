@@ -1,17 +1,16 @@
-Advanced Network Planning in Four Dimensions (anp4d)
-=========================================================
+Network Planning in Four Dimensions (np4d)
+==========================================
 
 Description
 -----------
 
-The **Advanced Network Planning in Four Dimensions** (`anp4d`) can quantify the demand
+The **Network Planning in Four Dimensions** (`np4d`) can quantify the demand
 and supply for digital connectivity in Four Dimensions (x, y, z, coordinates + time).
 
 Setup and configuration
 -----------------------
 
-All code for **anp4d** is written in
-Python (Python>=3.5) and has a number of dependencies.
+All code for **np4d** is written in Python and has a number of dependencies.
 See `requirements.txt` for a full list.
 
 Using conda
@@ -21,29 +20,41 @@ The recommended installation method is to use [conda](http://conda.pydata.org/mi
 which handles packages and virtual environments, along with the `conda-forge` channel which
 has a host of pre-built libraries and packages.
 
-Create a conda environment called `anp4d`:
+Create a conda python environment called `np4d` with `gdal`:
 
-    conda create --name anp4d python=3.7
+    conda create --name np4d python gdal
 
 Activate it (run each time you switch projects)::
 
-    activate pysim5g
+    activate np4d
 
-First, install required packages including `fiona`, `shapely`, `numpy`, and `rtree`:
+First, install required packages including `fiona`, `shapely`, `numpy`, `rtree`, `pytest`:
 
-    conda install fiona shapely numpy rtree
+    conda install fiona shapely numpy rtree pytest
 
-For development purposes, run this command once per machine:
+It helps to deactive and then reactivate the env using:
+
+    deactivate
+
+And then:
+
+    conda activate np4d
+
+Then for development purposes, run this command once per machine:
 
     python setup.py develop
 
-To install pysim5g permanently:
+Or, to install np4d permanently:
 
     python setup.py install
 
 To generate results run:
 
     python scripts/run.py
+
+To test run:
+
+    pytest
 
 Contributors
 ------------
