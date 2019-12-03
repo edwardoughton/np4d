@@ -28,7 +28,20 @@ CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
 def get_sites(path):
+    """
+    Load cell site locations.
 
+    Parameters
+    ----------
+    path : string
+        path for cell site data.
+
+    Returns
+    -------
+    sites : list of dicts
+        Contains the site_id, and then an x and y coordinate.
+
+    """
     sites = []
 
     with open(path, 'r') as source:
@@ -44,7 +57,22 @@ def get_sites(path):
 
 
 def load_road_flows(path):
+    """
+    Load hourly road flow data.
 
+    Parameters
+    ----------
+    path : string
+        path for road flow data.
+
+    Returns
+    -------
+    flows : list of dicts
+        Contains the road_id, hour and number of vehicles.
+    unique_link_ids : list of dicts
+        Contains a set of unique road_ids.
+
+    """
     unique_link_ids = set()
 
     flows = []
@@ -64,7 +92,23 @@ def load_road_flows(path):
 
 
 def load_roads(path, unique_link_ids):
+    """
+    Load road shapes.
 
+    Parameters
+    ----------
+    path : string
+        path for road flow data.
+    unique_link_ids : list of dicts
+        Contains a set of unique road_ids.
+
+    Returns
+    -------
+    roads : dict of dicts
+        Contains the road_id as the key, and then the value is a dict
+        containing the road_id and shapely geom.
+
+    """
     roads = {}
 
     seen_ids = []
@@ -95,27 +139,13 @@ def load_roads(path, unique_link_ids):
                             y = geom.interpolate(length)
                             line = LineString([x, y])
 
-                        # links.append({
-                        #     'type': 'Feature',
-                        #     'geometry': mapping(line),
-                        #     'properties': {
-                        #         'edgeid': link
-                        #     }
-                        # })
-
                         roads[link_id] = {
                             'road_id': link_id,
                             'geom': line
                         }
                         number += 1
                 else:
-                    # links.append({
-                    #     'type': 'Feature',
-                    #     'geometry': mapping(geom),
-                    #     'properties': {
-                    #         'edgeid': link
-                    #     }
-                    # })
+
                     roads[link] = {
                         'road_id': link,
                         'geom': geom
@@ -124,8 +154,8 @@ def load_roads(path, unique_link_ids):
     return roads
 
 
-def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
-                  settlement_type, seed_value, iterations):
+def extended_hata(frequency, distance, ant_height, ue_height,
+                above_roof, settlement_type, seed_value, iterations):
     """
     Implements the Extended Hata path loss model.
 
@@ -134,20 +164,26 @@ def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
     frequency : int
         Carrier band (f) required in MHz.
     distance : int
-        Distance (d) between transmitter and receiver
-        required in kilometres.
+        Distance (d) between transmitter and receiver (kilometres).
     ant_height : int
         Transmitter antenna height (h1) (m, above ground).
     ue_height : int
         Receiver antenna height (h2) (m, above ground).
+    above_roof : int
+        Whether the path is above or below the roof line (0=below, 1=above).
     settlement_type : string
-        General environment (urban/suburban/rural)
+        General environment (urban/suburban/rural).
     seed_value : int
         Set the seed for the pseudo random number generator
         allowing reproducible stochastic restsults.
     iterations : string
         Specify the number of random numbers to be generated.
         The mean value will be used.
+
+    Returns
+    -------
+    path_loss : float
+        Estimated path loss (dB).
 
     """
     #find smallest height value
@@ -171,10 +207,10 @@ def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
         raise ValueError('Distance over 100km not compliant')
 
     ###PART 1####
-    #Determine initial path loss according to distance, frequency and environment.
+    #Determine initial path loss based on distance, frequency and environment.
     if distance < 0.04:
-        path_loss = (32.4 + (20*np.log10(frequency)) + (10*np.log10((distance**2) +
-            ((hb - hm)**2) / (10**6))))
+        path_loss = (32.4 + (20*np.log10(frequency)) +
+            (10*np.log10((distance**2) + ((hb - hm)**2) / (10**6))))
 
     elif distance >= 0.1:
 
@@ -258,7 +294,7 @@ def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
             path_loss = (path_loss + random_quantity)
 
         else:
-            raise ValueError('Could not determine if cell is above or below roof line')
+            raise ValueError('Could not determine if above or below roof line')
 
     elif 0.1 < distance <= 0.2:
 
@@ -271,7 +307,7 @@ def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
                                 1, 17, iterations, seed_value)
             path_loss = (path_loss + random_quantity)
         else:
-            raise ValueError('Could not determine if cell is above or below roof line')
+            raise ValueError('Could not determine if above or below roof line')
 
     elif 0.2 < distance <= 0.6:
 
@@ -287,7 +323,7 @@ def extended_hata(frequency, distance, ant_height, ue_height, above_roof,
                                 1, sigma, iterations, seed_value)
             path_loss = (path_loss + random_quantity)
         else:
-            raise ValueError('Could not determine if cell is above or below roof line')
+            raise ValueError('Could not determine if above or below roof line')
 
     elif 0.6 < distance:
 
@@ -343,7 +379,22 @@ def generate_log_normal_dist_value(frequency, mu, sigma, iterations, seed_value)
 
 
 def find_closest_site(road, sites):
-    # {'y': 228500.0427, 'x': 432164.8513, 'site_id': 'SP3206428548'},
+    """
+    Finds the closest cell site.
+
+    Parameters
+    ----------
+    road : dict
+        Contains the road_id and shapely geom.
+    sites : list of dicts
+        Contains the site_id, and then an x and y coordinate.
+
+    Returns
+    -------
+    nearest_site : object
+        The closest cellular site as a shapely object.
+
+    """
     site_geoms = []
 
     road_geom = road['geom']
@@ -368,7 +419,6 @@ def estimate_demand(vehicle_density, target_capacity, obf):
 
     Parameters
     ----------
-
     vehicle_density : float
         The number of vehicles per 1 kilometer stretch of road.
     target_capacity : int
@@ -382,10 +432,19 @@ def estimate_demand(vehicle_density, target_capacity, obf):
     return round(demand)
 
 
-
 def csv_writer(data, directory, filename):
     """
-    Write data to a CSV file path
+    Write data to a CSV file path.
+
+    Parameters
+    ----------
+    data : list of dicts
+        Data to be written.
+    directory : string
+        Path to export folder
+    filename : string
+        Desired filename.
+
     """
     # Create path
     if not os.path.exists(directory):
@@ -401,9 +460,49 @@ def csv_writer(data, directory, filename):
         writer.writerows(data)
 
 
+def convert_shapes_to_geojson(data):
+    """
+    Converts shapes to geojson.
+
+    Parameters
+    ----------
+    data : dict of dicts
+
+    Returns
+    -------
+    links : list of dicts
+        Contains geojson format data.
+
+    """
+    links = []
+
+    for key, value in data.items():
+
+        links.append({
+            'type': 'Feature',
+            'geometry': mapping(value['geom']),
+            'properties': {
+                'road_id_segment': key
+            }
+        })
+
+    return links
+
+
 def write_shapefile(data, directory, filename, crs):
     """
     Write geojson data to shapefile.
+
+    Parameters
+    ----------
+    data : list of dicts
+        Data to be written.
+    directory : string
+        Path to export folder.
+    filename : string
+        Desired filename.
+    crs : string
+        Present coordinate reference system (crs).
 
     """
     prop_schema = []
@@ -464,7 +563,7 @@ if __name__ == '__main__':
 
     print('Importing road flow data')
     path = os.path.join('data','link_use_central_oxford.csv')
-    flows, unique_link_ids = load_road_flows(path)[:10]
+    flows, unique_link_ids = load_road_flows(path)
 
     print('Importing road data')
     path = os.path.join('data','national','fullNetworkWithEdgeIDs.shp')
@@ -475,7 +574,6 @@ if __name__ == '__main__':
     settlement_type = 'urban'
     seed_value = 42
     iterations = 1
-
     target_capacity = 2
     obf = 50
 
@@ -484,55 +582,59 @@ if __name__ == '__main__':
     for key, road in roads.items():
         road_id = str(key).split('_')[0]
 
-        for flow in flows:
-            # print(road_id, flow)
-            if int(road_id) == flow['road_id']:
-                # {'vehicles': 818, 'road_id': 52722, 'hour': 'FIVEPM'}
+        for interval_key, interval_name in [
+            ('MIDNIGHT', '00'),
+            ('ONEAM', '01'),
+            ('TWOAM', '02'),
+            ('THREEAM', '03'),
+            ('FOURAM', '04'),
+            ('FIVEAM', '05'),
+            ('SIXAM', '06'),
+            ('SEVENAM', '07'),
+            ('EIGHTAM', '08'),
+            ('NINEAM', '09'),
+            ('TENAM', '10'),
+            ('ELEVENAM', '11'),
+            ('NOON', '12'),
+            ('ONEPM', '13'),
+            ('TWOPM', '14'),
+            ('THREEPM', '15'),
+            ('FOURPM', '16'),
+            ('FIVEPM', '17'),
+            ('SIXPM', '18'),
+            ('SEVENPM', '19'),
+            ('EIGHTPM', '20'),
+            ('NINEPM', '21'),
+            ('TENPM', '22'),
+            ('ELEVENPM', '23')
+            ]:
 
-                for interval_key, interval_name in [
-                    ('MIDNIGHT', '00'),
-                    ('ONEAM', '01'),
-                    ('TWOAM', '02'),
-                    ('THREEAM', '03'),
-                    ('FOURAM', '04'),
-                    ('FIVEAM', '05'),
-                    ('SIXAM', '06'),
-                    ('SEVENAM', '07'),
-                    ('EIGHTAM', '08'),
-                    ('NINEAM', '09'),
-                    ('TENAM', '10'),
-                    ('ELEVENAM', '11'),
-                    ('NOON', '12'),
-                    ('ONEPM', '13'),
-                    ('TWOPM', '14'),
-                    ('THREEPM', '15'),
-                    ('FOURPM', '16'),
-                    ('FIVEPM', '17'),
-                    ('SIXPM', '18'),
-                    ('SEVENPM', '19'),
-                    ('EIGHTPM', '20'),
-                    ('NINEPM', '21'),
-                    ('TENPM', '22'),
-                    ('ELEVENPM', '23')
-                    ]:
+            for flow in flows:
+                if int(road_id) == flow['road_id'] and interval_key == flow['hour']:
 
                     hour = interval_key
                     vehicle_density = flow['vehicles']
 
+                    #find the most likely cell to serve that segment
                     site = find_closest_site(road, sites)
 
+                    #get the demand on this road segment
                     demand_km2 = estimate_demand(vehicle_density, target_capacity, obf)
 
-
+                    #find centroid of road segment
                     road_geom = road['geom'].interpolate(road['geom'].length / 2)
 
+                    #estimate the capacity of road segment
                     capacity_km2 = estimate_link_budget(road_geom, site, frequency, bandwidth,
                         settlement_type, seed_value, iterations, modulation_and_coding_lut)
 
+                    #find the capacity margin of road segment
                     capacity_margin_km2 = capacity_km2 - demand_km2
 
+                    #record results
                     results.append({
                         'road_id': road_id,
+                        'road_id_segment': key,
                         'hour': hour,
                         'vehicle_density': vehicle_density,
                         'demand': demand_km2,
@@ -543,6 +645,8 @@ if __name__ == '__main__':
     print('Writing processed sites to .csv')
     csv_writer(results, directory_results, 'results.csv')
 
-    # print(roads)
+    print('Converting roads to geojson')
+    roads_geojson = convert_shapes_to_geojson(roads)
 
-    # write_shapefile(roads, directory, 'chopped_roads.shp', crs)
+    print('Writing roads to .shp')
+    write_shapefile(roads_geojson, directory, 'chopped_roads.shp', crs)
