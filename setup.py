@@ -55,7 +55,10 @@ setup(
         'shapely',
         'numpy',
         'rtree',
+        'pytest',
+        'imageio',
         'contextily',
+        'pygifsicle',
     ],
     extras_require={
         # eg:
