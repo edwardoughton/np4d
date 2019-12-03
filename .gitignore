@@ -106,6 +106,7 @@ venv.bak/
 
 # Data
 data/national*
+data/processed*
 results/*
 vis/*
 scripts/script_config.ini
