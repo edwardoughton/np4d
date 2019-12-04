@@ -51,6 +51,14 @@ setup(
     ],
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
+        'fiona',
+        'shapely',
+        'numpy',
+        'rtree',
+        'pytest',
+        'imageio',
+        'contextily',
+        'pygifsicle',
     ],
     extras_require={
         # eg:
