@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Setup file for cdcam
+Setup file for np4d
 
 """
 from glob import glob
@@ -19,15 +19,15 @@ def readme():
 
 
 setup(
-    name='anp4d',
+    name='np4d',
     use_scm_version=True,
     license='MIT License',
-    description='Advanced Network Planning in Four Dimensions',
+    description='Network Planning in Four Dimensions',
     long_description=readme(),
     long_description_content_type='text/markdown',
     author='Edward J. Oughton',
     author_email='edward.oughton@ouce.ox.ac.uk',
-    url='https://github.com/edwardoughton/anp4d',
+    url='https://github.com/edwardoughton/np4d',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
