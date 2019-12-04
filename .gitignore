@@ -106,10 +106,12 @@ venv.bak/
 
 # Data
 data/national*
-data/processed*
+data/processed/*
 results/*
 vis/*
 scripts/script_config.ini
 cache
 *.zip
 *.gif
+data/processed/chopped_roads.dbf
+data/processed/chopped_roads.prj
