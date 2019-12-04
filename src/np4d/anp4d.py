@@ -10,7 +10,7 @@ from shapely.geometry import Point, LineString, mapping
 import numpy as np
 from itertools import tee
 
-from anp4d.path_loss import path_loss_calculator
+from np4d.path_loss import path_loss_calculator
 
 
 def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
