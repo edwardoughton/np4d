@@ -18,7 +18,7 @@ from rtree import index
 
 from collections import OrderedDict
 
-from anp4d.anp4d import estimate_link_budget
+from np4d.np4d import estimate_link_budget
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
