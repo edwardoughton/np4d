@@ -1,5 +1,5 @@
 """
-Advanced Network Planning in Four Dimensions - anp4d
+Network Planning in Four Dimensions - np4d
 
 Written by Edward Oughton
 November 2019
@@ -10,27 +10,34 @@ from shapely.geometry import Point, LineString, mapping
 import numpy as np
 from itertools import tee
 
-from anp4d.path_loss import path_loss_calculator
+from np4d.path_loss import path_loss_calculator
 
-def estimate_link_budget(receiver, site, frequency, bandwidth,  settlement_type,
+
+def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
     seed_value, iterations, modulation_and_coding_lut):
     """
     Function for estimating the link budget of a single point.
 
     Parameters
     ----------
+    receiver : Shapely Point object
+        The point geometry for the receiver location.
+    site : Shapely Point object
+        The point geometry for the cell site location.
     frequency : int
         Carrier band (f) required in MHz.
     bandwidth : int
         Width of the carrier frequency in MHz.
     settlement_type : string
-        General environment (urban/suburban/rural)
+        General environment (urban/suburban/rural).
     seed_value : int
         Set the seed for the pseudo random number generator
         allowing reproducible stochastic restsults.
     iterations : string
         Specify the number of random numbers to be generated.
         The mean value will be used.
+    modulation_and_coding_lut : list of tuples
+        Lookup table containg sinr and spectral efficiency values.
 
     Return
     ------
@@ -43,14 +50,14 @@ def estimate_link_budget(receiver, site, frequency, bandwidth,  settlement_type,
     #turn path between cell site and user equipment into shapely line object
     line_geom = LineString([(receiver.x, receiver.y),(site.x, site.y)])
 
-    frequency = frequency / 1000
-    distance = line_geom.length / 1e3
+    frequency = frequency
+    distance = line_geom.length
     ant_height = 30
     ant_type = 'macro'
     building_height = 20
     street_width = 20
     settlement_type = 'urban'
-    type_of_sight = 'nlos'
+    type_of_sight = 'los'
     ue_height = 5
     above_roof = 0
     indoor = 0
@@ -83,7 +90,7 @@ def estimate_link_budget(receiver, site, frequency, bandwidth,  settlement_type,
 
     #calculate the signal to interference plus noise ratio
     sinr = np.log10((10**received_power) / #get the raw linear received power
-        ((10**inteference) + #get raw linear sum of interference
+            ((10**inteference) + #get raw linear sum of interference
             (10**noise))) #get the raw linear noise
 
     #get the corresponding spectral efficiency achievable with the current sinr

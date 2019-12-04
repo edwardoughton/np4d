@@ -19,7 +19,7 @@ import pandas as pd
 import pygifsicle
 
 CONFIG = configparser.ConfigParser()
-CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
+CONFIG.read(os.path.join(os.path.dirname(__file__),'..','scripts','script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
 
@@ -46,7 +46,7 @@ def plot_maps(metric, label, flows, flow_max, links, hours):
     for hour, hour_key in enumerate(hours):
         hour_flows = flows[flows.hour == hour_key].copy()
         hour_flows = links.merge(hour_flows, on='road_id_segment')
-        plot_name = os.path.join('vis', '{:02d}_{}.png'.format(hour, metric))
+        plot_name = os.path.join('vis', 'images', '{:02d}_{}.png'.format(hour, metric))
         plot_map(metric, label, hour, hour_flows, flow_max, plot_name)
 
     return print('Plotted all maps')
@@ -56,7 +56,9 @@ def generate_gif(metric, gif_path):
 
     images = []
 
-    filenames = glob.glob(os.path.join(BASE_PATH, '..', 'vis', '*{}.png'.format(metric)))
+    filenames = glob.glob(
+        os.path.join(BASE_PATH, '..', 'vis', 'images','*{}.png'.format(metric))
+    )
 
     for filename in filenames:
         images.append(imageio.imread(filename))
@@ -126,7 +128,9 @@ if __name__ == '__main__':
         metric = plot[0]
         label = plot[1]
 
-        gif_path = os.path.join(BASE_PATH, '..', 'vis', 'movie_{}.gif'.format(metric))
+        gif_path = os.path.join(
+            BASE_PATH, '..', 'vis', 'movies', 'movie_{}.gif'.format(metric)
+        )
 
         make_gif(metric, label, path_flow_data, path_link_data, hours, gif_path)
 
