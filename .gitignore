@@ -108,7 +108,8 @@ venv.bak/
 data/national*
 data/processed/*
 results/*
-vis/*
+vis/images/*
+vis/movies/*
 scripts/script_config.ini
 cache
 *.zip
