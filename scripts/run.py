@@ -11,12 +11,9 @@ import sys
 import configparser
 import csv
 
-# import math
 import fiona
 from shapely.geometry import Point, LineString, mapping
 import numpy as np
-# from random import choice
-
 from rtree import index
 
 from collections import OrderedDict
