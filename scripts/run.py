@@ -311,7 +311,7 @@ if __name__ == '__main__':
     ##propagation model can either be:
     ##'etsi_tr_138_901' or
     ##'extended_hata'
-    model = 'extended_hata'
+    model = 'etsi_tr_138_901'
 
     modulation_and_coding_lut =[
         # CQI, Modulation, Coding rate, SE (bps/Hz), SINR (dB)
