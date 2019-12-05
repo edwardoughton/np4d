@@ -7,6 +7,9 @@ Description
 The **Network Planning in Four Dimensions** (`np4d`) can quantify the demand
 and supply for digital connectivity in Four Dimensions (x, y, z, coordinates + time).
 
+We demonstrate the capability of this software using vehicle traffic flow estimates,
+and focusing on the demand and supply of data for connected vehicles.
+
 Setup and configuration
 -----------------------
 
@@ -28,7 +31,7 @@ Activate it (run each time you switch projects)::
 
     activate np4d
 
-First, install required packages including `fiona`, `shapely`, `numpy`, `rtree`, `pytest`:
+First, install required packages including `fiona`, `shapely`, `numpy`, `rtree`:
 
     conda install fiona shapely numpy rtree pytest
 
@@ -51,10 +54,6 @@ Or, to install np4d permanently:
 To generate results run:
 
     python scripts/run.py
-
-To test run:
-
-    pytest
 
 Contributors
 ------------
