@@ -13,7 +13,7 @@ from itertools import tee
 from np4d.path_loss import path_loss_calculator
 
 
-def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
+def estimate_link_budget(model, receiver, site, frequency, bandwidth, settlement_type,
     seed_value, iterations, modulation_and_coding_lut):
     """
     Function for estimating the link budget of a single point.
@@ -65,18 +65,18 @@ def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
     iterations = 20
 
     # #frequency in MHz, distance in kilometers
-    path_loss_dB = path_loss_calculator(frequency, distance, ant_height, ant_type,
-        building_height, street_width, settlement_type, type_of_sight,
-        ue_height, above_roof, indoor, seed_value, iterations)
+    path_loss_dB = path_loss_calculator(model, frequency, distance,
+        ant_height, ant_type, building_height, street_width, settlement_type,
+        type_of_sight, ue_height, above_roof, indoor, seed_value, iterations)
 
     #Equivalent Isotropically Radiated Power (EIRP) - Effective radiated power
     #eirp = site power + site gain - site losses
     eirp = 40 + 16 - 1
 
-    # signal/field strength - received power from the transmitter by a reference antenna
-    # at a distance from the transmitting antenna
+    # signal/field strength - received power from the transmitter by a
+    # reference antenna at a distance from the transmitting antenna
     #received power = eirp - path_loss - ue_misc_losses + ue_gain - ue_losses
-    received_power = eirp - path_loss_dB[0] - 4 + 4 - 4
+    received_power = eirp - path_loss_dB - 4 + 4 - 4
 
     #Unwanted in-band interference from other radio antennas
     inteference = -60
@@ -93,7 +93,8 @@ def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
             ((10**inteference) + #get raw linear sum of interference
             (10**noise))) #get the raw linear noise
 
-    #get the corresponding spectral efficiency achievable with the current sinr
+    #get the corresponding spectral efficiency achievable
+    #with the current sinr
     spectral_efficiency = modulation_scheme_and_coding_rate(
                             sinr, '4G', modulation_and_coding_lut)
 
@@ -108,10 +109,11 @@ def estimate_link_budget(receiver, site, frequency, bandwidth, settlement_type,
     return mean_capacity_mbps
 
 
-def modulation_scheme_and_coding_rate(sinr, generation, modulation_and_coding_lut):
+def modulation_scheme_and_coding_rate(sinr, generation,
+    modulation_and_coding_lut):
     """
-    Uses the SINR to allocate a modulation scheme and affliated
-    coding rate.
+    Uses the SINR to allocate a modulation scheme, affliated
+    coding rate, and thus a spectral efficiency.
 
     Parameters
     ----------

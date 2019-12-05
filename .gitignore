@@ -110,7 +110,6 @@ data/processed/*
 results/*
 vis/images/*
 vis/movies/*
-scripts/script_config.ini
 cache
 *.zip
 *.gif
