@@ -24,6 +24,7 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
+
 def get_sites(path):
     """
     Load cell site locations.
@@ -149,230 +150,6 @@ def load_roads(path, unique_link_ids):
                     }
 
     return roads
-
-
-def extended_hata(frequency, distance, ant_height, ue_height,
-                above_roof, settlement_type, seed_value, iterations):
-    """
-    Implements the Extended Hata path loss model.
-
-    Parameters
-    ----------
-    frequency : int
-        Carrier band (f) required in MHz.
-    distance : int
-        Distance (d) between transmitter and receiver (kilometres).
-    ant_height : int
-        Transmitter antenna height (h1) (m, above ground).
-    ue_height : int
-        Receiver antenna height (h2) (m, above ground).
-    above_roof : int
-        Whether the path is above or below the roof line (0=below, 1=above).
-    settlement_type : string
-        General environment (urban/suburban/rural).
-    seed_value : int
-        Set the seed for the pseudo random number generator
-        allowing reproducible stochastic restsults.
-    iterations : string
-        Specify the number of random numbers to be generated.
-        The mean value will be used.
-
-    Returns
-    -------
-    path_loss : float
-        Estimated path loss (dB).
-
-    """
-    #find smallest height value
-    hm = min(ant_height, ue_height)
-
-    #find largest height value
-    hb = max(ant_height, ue_height)
-
-    alpha_hm = (1.1*np.log10(frequency) - 0.7) * min(10, hm) - \
-        (1.56*np.log10(frequency) - 0.8) + max(0, (20*np.log10(hm/10)))
-
-    beta_hb = min(0, (20*np.log10(hb/30)))
-
-    if distance <= 20: #units : km
-        alpha_exponent = 1
-
-    elif 20 < distance < 100: #units : km
-        alpha_exponent = 1 + (0.14 + 1.87e-4 * frequency + \
-            1.07e-3 * hb)*(np.log10(distance/20))**0.8
-    else:
-        raise ValueError('Distance over 100km not compliant')
-
-    ###PART 1####
-    #Determine initial path loss based on distance, frequency and environment.
-    if distance < 0.04:
-        path_loss = (32.4 + (20*np.log10(frequency)) +
-            (10*np.log10((distance**2) + ((hb - hm)**2) / (10**6))))
-
-    elif distance >= 0.1:
-
-        if 30 < frequency <= 150:
-            path_loss = (69.6 + 26.2*np.log10(150) - 20*np.log10(150/frequency) -
-                13.82*np.log10(max(30, hb)) +
-                (44.9 - 6.55*np.log10(max(30, hb))) *
-                np.log10(distance)**alpha_exponent - alpha_hm - beta_hb)
-
-        elif 150 < frequency <= 1500:
-            path_loss = (69.6 + 26.2*np.log10(frequency) -
-                13.82*np.log10(max(30, hb)) +
-                (44.9 - 6.55*np.log10(max(30, hb))) *
-                ((np.log10(distance))**alpha_exponent) - alpha_hm - beta_hb)
-
-        elif 1500 < frequency <= 2000:
-            path_loss = (46.3 + 33.9*np.log10(frequency) -
-                13.82*np.log10(max(30, hb)) +
-                (44.9 - 6.55*np.log10(max(30, hb))) *
-                (np.log10(distance))**alpha_exponent - alpha_hm - beta_hb)
-
-        elif 2000 < frequency <= 4000:
-            path_loss = (46.3 + 33.9*np.log10(2000) +
-                10*np.log10(frequency/2000) -
-                13.82*np.log10(max(30, hb)) +
-                (44.9 - 6.55*np.log10(max(30, hb))) *
-                (np.log10(distance))**alpha_exponent - alpha_hm - beta_hb)
-
-        else:
-            raise ValueError('Carrier frequency incorrect for Extended Hata')
-
-        if settlement_type == 'suburban':
-            path_loss = (path_loss - 2 * \
-                (np.log10((min(max(150, frequency), 2000)/28)))**2 - 5.4)
-
-        elif settlement_type == 'rural': #also called 'open area'
-            path_loss = (path_loss - 4.78 * \
-                (np.log10(min(max(150, frequency), 2000)))**2 + 18.33 * \
-                    np.log10(min(max(150, frequency), 2000)) - 40.94)
-        else:
-            pass
-
-    elif 0.04 <= distance < 0.1:
-
-        #distance pre-set at 0.1
-        l_fixed_distance_upper = (32.4 + (20*np.log10(frequency)) +
-              (10*np.log10(0.1**2 + (hb - hm)**2 / 10**6)))
-
-        #distance pre-set at 0.04
-        l_fixed_distance_lower = (32.4 + (20*np.log10(frequency)) +
-              (10*np.log10(0.04**2 + (hb - hm)**2 / 10**6)))
-
-        path_loss = (l_fixed_distance_lower +
-             (np.log10(distance) - np.log10(0.04)) / \
-            (np.log10(0.1) - np.log10(0.04)) *
-            (l_fixed_distance_upper - l_fixed_distance_lower))
-
-    else:
-        # print(distance)
-        raise ValueError('Distance over 100km not compliant')
-
-    ###PART 2####
-    #determine variation in path loss using stochastic component
-    if distance <= 0.04:
-
-        path_loss = path_loss + generate_log_normal_dist_value(frequency,
-                                    1, 3.5, iterations, seed_value)
-
-    elif 0.04 < distance <= 0.1:
-
-        if above_roof == 1:
-            sigma = (3.5 + ((12-3.5)/0.1-0.04) * (distance - 0.04))
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                    1, sigma, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-
-        elif above_roof == 0:
-            sigma = (3.5 + ((17-3.5)/0.1-0.04) * (distance - 0.04))
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                    1, sigma, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-
-        else:
-            raise ValueError('Could not determine if above or below roof line')
-
-    elif 0.1 < distance <= 0.2:
-
-        if above_roof == 1:
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                1, 12, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-        elif above_roof == 0:
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                1, 17, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-        else:
-            raise ValueError('Could not determine if above or below roof line')
-
-    elif 0.2 < distance <= 0.6:
-
-        if above_roof == 1:
-            sigma = (12 + ((9-12)/0.6-0.2) * (distance - 0.02))
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                1, sigma, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-
-        elif above_roof == 0:
-            sigma = (17 + (9-17) / (0.6-0.2) * (distance - 0.02))
-            random_quantity = generate_log_normal_dist_value(frequency,
-                                1, sigma, iterations, seed_value)
-            path_loss = (path_loss + random_quantity)
-        else:
-            raise ValueError('Could not determine if above or below roof line')
-
-    elif 0.6 < distance:
-
-        random_quantity = generate_log_normal_dist_value(frequency,
-                                1, 12, iterations, seed_value)
-
-        path_loss = (path_loss + random_quantity)
-
-    return round(path_loss, 2)
-
-
-def generate_log_normal_dist_value(frequency, mu, sigma, iterations, seed_value):
-    """
-    Generates random values using a lognormal distribution,
-    given a specific mean (mu) and standard deviation (sigma).
-
-    https://stackoverflow.com/questions/51609299/python-np-lognormal-gives-infinite-
-    results-for-big-average-and-st-dev
-
-    The parameters mu and sigma in np.random.lognormal are not the mean and STD of
-    the lognormal distribution. They are the mean and STD of the underlying normal
-    distribution.
-
-    Parameters
-    ----------
-    frequency : int
-        Carrier band (f) required in MHz.
-    mu : int
-        Mean of the desired distribution.
-    sigma : int
-        Standard deviation of the desired distribution.
-    iterations : string
-        Specify the number of random numbers to be generated.
-        The mean value will be used.
-    seed_value : int
-        Set the seed for the pseudo random number generator
-        allowing reproducible stochastic restsults.
-
-    """
-    if seed_value == None:
-        pass
-    else:
-        frequency_seed_value = seed_value * frequency * 100
-
-        np.random.seed(int(str(frequency_seed_value)[:2]))
-
-    normal_std = np.sqrt(np.log10(1 + (sigma/mu)**2))
-    normal_mean = np.log10(mu) - normal_std**2 / 2
-
-    hs = np.random.lognormal(normal_mean, normal_std, iterations)
-
-    return round(np.mean(hs),2)
 
 
 def find_closest_site(road, sites):
@@ -531,8 +308,13 @@ def write_shapefile(data, directory, filename, crs):
 
 if __name__ == '__main__':
 
+    ##propagation model can either be:
+    ##'etsi_tr_138_901' or
+    ##'extended_hata'
+    model = 'extended_hata'
+
     modulation_and_coding_lut =[
-        # CQI Index, Modulation, Coding rate, Spectral efficiency (bps/Hz), SINR (dB)
+        # CQI, Modulation, Coding rate, SE (bps/Hz), SINR (dB)
         ('4G', 1, 'QPSK',	0.0762,	0.1523, -6.7),
         ('4G', 2, 'QPSK',	0.1172,	0.2344, -4.7),
         ('4G', 3, 'QPSK',	0.1885,	0.377, -2.3),
@@ -563,7 +345,7 @@ if __name__ == '__main__':
     flows, unique_link_ids = load_road_flows(path)
 
     print('Importing road data')
-    path = os.path.join('data','national','fullNetworkWithEdgeIDs.shp')
+    path = os.path.join('data','shapes','fullNetworkWithEdgeIDs.shp')
     roads = load_roads(path, unique_link_ids)
 
     frequency = 800
@@ -622,8 +404,9 @@ if __name__ == '__main__':
                     road_geom = road['geom'].interpolate(road['geom'].length / 2)
 
                     #estimate the capacity of road segment
-                    capacity_km2 = estimate_link_budget(road_geom, site, frequency, bandwidth,
-                        settlement_type, seed_value, iterations, modulation_and_coding_lut)
+                    capacity_km2 = estimate_link_budget(model, road_geom, site,
+                        frequency, bandwidth, settlement_type, seed_value, iterations,
+                        modulation_and_coding_lut)
 
                     #find the capacity margin of road segment
                     capacity_margin_km2 = capacity_km2 - demand_km2
