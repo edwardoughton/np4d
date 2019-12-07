@@ -112,4 +112,4 @@ vis/images/*
 vis/movies/*
 cache
 *.zip
-*.gif
+# *.gif
