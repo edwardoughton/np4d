@@ -10,10 +10,10 @@ and supply for digital connectivity in Four Dimensions (x, y, z, coordinates + t
 We demonstrate the capability of this software using vehicle traffic flow estimates,
 and focusing on the demand and supply of data for connected vehicles.
 
-Capacity margin estimation: The City of Oxford, UK
---------------------------------------------------
+Cellular Network Capacity Margin: The City of Oxford, UK
+--------------------------------------------------------
 
-![](movie_capacity_margin.gif)
+![](/movie_capacity_margin.gif)
 
 Setup and configuration
 -----------------------
