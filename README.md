@@ -13,8 +13,7 @@ and focusing on the demand and supply of data for connected vehicles.
 Capacity margin estimation: The City of Oxford, UK
 --------------------------------------------------
 
-![Example](/movie_capacity_margin.gif)
-
+![](movie_capacity_margin.gif)
 
 Setup and configuration
 -----------------------
