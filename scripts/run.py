@@ -12,7 +12,7 @@ import configparser
 import csv
 
 import fiona
-from shapely.geometry import Point, LineString, mapping
+from shapely.geometry import shape, LineString, mapping
 import numpy as np
 from rtree import index
 
@@ -46,9 +46,17 @@ def get_sites(path):
         reader = csv.DictReader(source)
         for item in reader:
             sites.append({
-                'site_id': item['Sitengr'],
-                'x': float(item['X']),
-                'y': float(item['Y']),
+                'type': 'Feature',
+                'geometry':{
+                    'type': 'Point',
+                    'coordinates': (float(item['X']), float(item['Y'])),
+                },
+                'properties':{
+                    'site_id': item['Sitengr'],
+                    'pcd_sector': item['pcd_sector'],
+                    'Cell Site': 'Cell Site',
+                    'b': 'b',
+                },
             })
 
     return sites
@@ -119,21 +127,21 @@ def load_roads(path, unique_link_ids):
                 geom = LineString(item['geometry']['coordinates'])
                 length = geom.length
 
-                if length >= 1000:
-                    iterations = round(length / 1000)
+                if length >= 250:
+                    iterations = round(length / 250)
                     number = 1
                     for i in range(1, iterations + 1):
 
                         link_id = str(str(link) + '_' + str(i))
 
                         if number < iterations:
-                            i = i * 1000
-                            x = geom.interpolate(i - 1000)
+                            i = i * 250
+                            x = geom.interpolate(i - 250)
                             y = geom.interpolate(i)
                             line = LineString([x, y])
                         else:
-                            i = i * 1000
-                            x = geom.interpolate(i - 1000)
+                            i = i * 250
+                            x = geom.interpolate(i - 250)
                             y = geom.interpolate(length)
                             line = LineString([x, y])
 
@@ -175,7 +183,7 @@ def find_closest_site(road, sites):
     road_centroid = road_geom.interpolate(road_geom.length / 2)
 
     for site in sites:
-        site_geoms.append(Point(site['x'], site['y']))
+        site_geoms.append(shape(site['geometry']))
 
     idx = index.Index(
         (i, site.bounds, site)
@@ -427,6 +435,9 @@ if __name__ == '__main__':
 
     print('Converting roads to geojson')
     roads_geojson = convert_shapes_to_geojson(roads)
+
+    print('Writing sites to .shp')
+    write_shapefile(sites, directory, 'sites.shp', crs)
 
     print('Writing roads to .shp')
     write_shapefile(roads_geojson, directory, 'chopped_roads.shp', crs)
