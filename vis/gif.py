@@ -27,10 +27,17 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 def plot_map(metric, legend_label, title, hour, roads, flow_min, flow_max, sites,
     output_filename, metric_min, metric_max):
 
-    fig, ax = plt.subplots(figsize=(10, 12))
+    fig, ax = plt.subplots(figsize=(8, 10))
+
+    plt.rcParams['savefig.pad_inches'] = 0
+    plt.autoscale(tight=True)
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    # plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0,
+    #         hspace = -5, wspace = 0)
 
     roads.plot(
-        figsize=(10, 12),
+        # figsize=(8, 10),
         column=metric,
         cmap='RdYlBu',#'hot',#
         norm=matplotlib.colors.Normalize(vmin=-150, vmax=150),
@@ -46,9 +53,10 @@ def plot_map(metric, legend_label, title, hour, roads, flow_min, flow_max, sites
         ax=ax
         )
 
+    # plt.legend(, bbox_transform=ax.transAxes)
     plt.title('{:02d}:00 {}'.format(hour, title), fontsize=16)
     ctx.add_basemap(ax, crs=roads.crs)
-    plt.savefig(output_filename)
+    plt.savefig(output_filename, pad_inches=0, bbox_inches='tight')
     plt.close()
 
     return print('Completed {:02d}.png'.format(hour))
