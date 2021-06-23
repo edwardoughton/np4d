@@ -5,7 +5,8 @@ Description
 -----------
 
 The **Network Planning in Four Dimensions** (`np4d`) can quantify the demand
-and supply for digital connectivity in Four Dimensions (x, y, z, coordinates + time).
+and supply for wireless digital connectivity (e.g. 4G or 5G) in Four Dimensions 
+(x, y, z, coordinates + time).
 
 We demonstrate the capability of this software using vehicle traffic flow estimates,
 and focusing on the demand and supply of data for connected vehicles.
